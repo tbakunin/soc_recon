@@ -1,0 +1,6 @@
+.idea/
+.git/
+__pycache__/
+venv/
+vk_config.v2.json
+
