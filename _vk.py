@@ -2,7 +2,7 @@ import vk_api
 import os
 
 
-def extractor(session=None, target=None):
+def all_info(session=None, target=None):
     os.chdir("resources")
     scope = open("full_info", "r").read()
     os.chdir("..")
