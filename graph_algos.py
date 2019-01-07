@@ -18,6 +18,8 @@ def create_ego_graph(vk_id, session):
             for temp_friend in temp_friends:
                 if temp_friend in friends or temp_friend == vk_id:
                     g.add_edge(friend, temp_friend)
+        else:
+            g.add_edge(vk_id, friend)
 
     cache.add_graph(vk_id, g)
     return g
