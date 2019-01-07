@@ -1,4 +1,4 @@
-from auth import auth
+from _vk import auth
 import graph_algos
 import cache
 
