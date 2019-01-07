@@ -5,14 +5,15 @@ import networkx as nx
 
 EXPIRE_TIME = 60**3
 
+
 def init():
     if "cache" not in os.listdir("."):
         os.mkdir("cache")
 
+
 def contains(target):
     os.chdir("cache")
     a = target in os.listdir(".") and ((calendar.timegm(time.gmtime()) - os.path.getmtime(str(target))) < EXPIRE_TIME)
-    print("Expire time is " + str(EXPIRE_TIME))
     os.chdir("..")
     return a
 

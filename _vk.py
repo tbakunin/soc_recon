@@ -2,6 +2,7 @@ import vk_api
 import os
 import cache
 
+
 def auth(check_saved=1):
     def tfa_handler():
         code = input("[!] 2FA detected! Please enter code you've just received: ")
@@ -43,6 +44,7 @@ def auth(check_saved=1):
             with open("resources/creds.log", "w") as f:
                 f.write("\n".join((login, password)))
         return inner_auth(i_login=login, i_password=password)
+
 
 def get_all_info(session=None, target=None):
     # do not need to check whether data is given since all checks are done before

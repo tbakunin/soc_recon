@@ -9,7 +9,9 @@ Soc_Recon is a Proof-of-Concept project that uses information about social netwo
 # Installation
 The whole project is written in Python 3 which makes installation pretty straightforward
 ### Install dependencies
-```pip3 install networkx, vk_api```
+```pacman -S igraph```
+
+```pip3 install networkx, vk_api, matplotlib, python-igraph```
 ### Download and run
 ```
 git clone https://github.com/tbakunin/soc_recon.git
