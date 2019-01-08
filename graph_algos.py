@@ -1,10 +1,15 @@
 import networkx as nx
 import _vk
 import cache
-import igraph
+import igraph  # cannot install this one on Win
 import os
 
 
+MAX_VERTICES = 600
+MAX_EDGES = 3000
+
+
+# Done
 def create_ego_graph(vk_id, session):
     if cache.contains_graph(vk_id):
         return cache.get_graph(vk_id)
@@ -27,8 +32,7 @@ def create_ego_graph(vk_id, session):
     return nx_g
 
 
-# TODO: adequate converter from networkx graph to igraph, current version is nasty
-
+# TODO: adequate conversion from networkx graph to igraph, current version is nasty
 def nx_to_ig(g):
     nx.write_gml(g, "temp.gml")
     g1 = igraph.read("temp.gml", format="gml")
@@ -36,6 +40,55 @@ def nx_to_ig(g):
     return g1
 
 
-# heuristics for choosing community detection algo
-def choose_cda():
-    pass
+def get_communities(nx_g, user):
+    # heuristics for choosing community detection algo
+    def use_bc(nx_g_h):
+        if len(nx_g_h.nodes) < MAX_VERTICES and len(nx_g_h.edges) < MAX_EDGES:
+            # if there are not so many edges we may use betweenness centrality algo
+            return True
+        else:
+            # else we should use much faster (but less accurate) multilevel algo
+            return False
+
+    # returns graph without unneeded nodes, done
+    # Feature: do not just delete node with degree 1
+    # but build their ego-graph as well in order to make connections to existing communities
+    def clean_graph(nx_g_c, user_c):
+        nx_g_c.remove_node(user_c)
+        deleted = list(nx.isolates(nx_g_c))
+        deleted.append(user_c)
+        nx_g_c.remove_nodes_from(list(nx.isolates(nx_g_c)))
+        cleaned = nx_g_c
+        return cleaned, deleted
+
+    # TODO: create getting partitions using bc
+    def get_partitions_bc(c_nx_g):
+        ig_g = nx_to_ig(c_nx_g)
+        return ig_g
+
+    # TODO: create getting partitions using ml
+    def get_partitions_ml(c_nx_g):
+        ig_g = nx_to_ig(c_nx_g)
+        return ig_g
+
+    # TODO: create graph recovery function
+    def recover_graph(partitioned, deleted):
+        return 0
+
+    clean_nx_g, deleted_nodes = clean_graph(nx_g, user)
+    if use_bc(clean_nx_g):
+        partitioned = get_partitions_bc(clean_nx_g)
+    else:
+        partitioned = get_partitions_ml(clean_nx_g)
+
+    result_g = recover_graph(partitioned, deleted_nodes)
+
+    return result_g
+
+
+# function for detecting similarities in communities
+# TODO: create it
+def find_similar(list_of_ids):
+    return list_of_ids
+
+
