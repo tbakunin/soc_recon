@@ -56,7 +56,7 @@ def main():
     target = int(input("[?] Enter target's ID or handle: "))
     g = graph_algos.create_ego_graph(target, session)
     comm_list = graph_algos.get_communities(g, target, session=session)
-    sims = graph_algos.find_similar(comm_list)
+    sims = graph_algos.find_similar(comm_list, session)
     gen_report(sims)
     return 0
 

@@ -46,12 +46,12 @@ def auth(check_saved=1):
         return inner_auth(i_login=login, i_password=password)
 
 
-def get_all_info(session=None, target=None):
+def get_all_info(session=None, targets=None):
     # do not need to check whether data is given since all checks are done before
     os.chdir("resources")
     scope = open("full_info", "r").read()
     os.chdir("..")
-    return session.users.get(user_id=target, fields=scope)
+    return session.users.get(user_ids=targets, fields=scope)
 
 
 def get_friends(session=None, target=None):

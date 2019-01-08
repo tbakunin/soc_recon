@@ -103,7 +103,13 @@ def get_communities(nx_g, user, algo="auto", session=None):
 
 
 # function for detecting similarities in communities
+
 # TODO: create it
-def find_similar(list_of_ids):
-    return list_of_ids
+def find_similar(list_of_ids, session):
+    ids = []
+    for i in range(len(list_of_ids)):
+        ids.append(list_of_ids[i][0])
+
+    data = _vk.get_all_info(session=session, targets=",".join(ids))
+    print(data)
 
