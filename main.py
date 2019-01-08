@@ -4,6 +4,7 @@ import cache
 import argparse
 import sys
 import os
+from report import gen_report
 
 """
 [?] - input from user needed
@@ -14,7 +15,7 @@ import os
 """
 
 
-def parse_agrs():
+def parse_args():
     parser = argparse.ArgumentParser(description='''"Show me who your friends are and Ill tell you who you are"''')
     parser.add_argument("--clean_cache", help="clean cache files", action="store_true")
     parser.add_argument("--clean_creds", help="clean saved credentials", action="store_true")
@@ -54,8 +55,12 @@ def main():
     cache.init()
     target = int(input("[?] Enter target's ID or handle: "))
     g = graph_algos.create_ego_graph(target, session)
+    comm_list = graph_algos.get_communities(g, target)
+    sims = graph_algos.find_similar(comm_list)
+    gen_report(sims)
+    return 0
 
 
 if __name__ == "__main__":
-    parse_agrs()
+    parse_args()
     main()
