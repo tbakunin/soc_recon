@@ -1,8 +1,9 @@
 .idea/
 .git/
 cache/
+venv/
 __pycache__/
 venv/
+data/
 vk_config.v2.json
 *.log
-data/

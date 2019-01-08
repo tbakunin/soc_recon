@@ -7,8 +7,13 @@ EXPIRE_TIME = 60**3
 
 
 def init():
+    print("[.] Initializing cache")
     if "cache" not in os.listdir("."):
         os.mkdir("cache")
+    os.chdir("cache")
+    if "graphs" not in os.listdir("."):
+        os.mkdir("graphs")
+    os.chdir("..")
 
 
 def contains(target):
@@ -38,7 +43,7 @@ def add(target, friends):
 
 
 def contains_graph(target):
-    filename = str(target) + ".gexf"
+    filename = str(target) + ".gml"
     os.chdir("cache/graphs")
     a = filename in os.listdir(".") and ((calendar.timegm(time.gmtime()) - os.path.getmtime(filename)) < 60 ** 3)
     os.chdir("../..")
@@ -48,7 +53,7 @@ def contains_graph(target):
 def get_graph(target):
     os.chdir("cache/graphs")
     print("[*] Loading ", target, "'s graph from cache")
-    g = nx.read_gexf(str(target) + ".gexf")
+    g = nx.read_gml(str(target) + ".gml")
     os.chdir("../..")
     return g
 
@@ -56,6 +61,6 @@ def get_graph(target):
 def add_graph(target, g):
     os.chdir("cache/graphs")
     print("[*] User's ", target, " graph is not in cache. Adding")
-    nx.write_gexf(g, str(target) + ".gexf")
+    nx.write_gml(g, str(target) + ".gml")
     os.chdir("../..")
     return 0

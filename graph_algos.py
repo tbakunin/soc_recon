@@ -5,8 +5,8 @@ import igraph  # cannot install this one on Win
 import os
 
 
-MAX_VERTICES = 600
-MAX_EDGES = 3000
+VERTICES_THRESHOLD = 600
+EDGES_THRESHOLD = 3000
 
 
 # Done
@@ -34,16 +34,16 @@ def create_ego_graph(vk_id, session):
 
 # TODO: adequate conversion from networkx graph to igraph, current version is nasty
 def nx_to_ig(g):
-    nx.write_gml(g, "temp.gml")
-    g1 = igraph.read("temp.gml", format="gml")
-    os.remove("temp.gml")
+    nx.write_pajek(g, "temp.pajek")
+    g1 = igraph.read("temp.pajek", format="pajek")
+    os.remove("temp.pajek")
     return g1
 
 
 def get_communities(nx_g, user):
     # heuristics for choosing community detection algo
     def use_bc(nx_g_h):
-        if len(nx_g_h.nodes) < MAX_VERTICES and len(nx_g_h.edges) < MAX_EDGES:
+        if len(nx_g_h.nodes) < VERTICES_THRESHOLD and len(nx_g_h.edges) < EDGES_THRESHOLD:
             # if there are not so many edges we may use betweenness centrality algo
             return True
         else:
@@ -64,7 +64,13 @@ def get_communities(nx_g, user):
     # TODO: create getting partitions using bc
     def get_partitions_bc(c_nx_g):
         ig_g = nx_to_ig(c_nx_g)
-        return ig_g
+        dendrogram = ig_g.community_edge_betweenness()
+        clusters = dendrogram.as_clustering()
+        membership = clusters.membership
+        a = list()
+        for name, membership in zip(ig_g.vs["name"], membership):
+            a.append([name, membership])
+        return a
 
     # TODO: create getting partitions using ml
     def get_partitions_ml(c_nx_g):
@@ -92,3 +98,25 @@ def find_similar(list_of_ids):
     return list_of_ids
 
 
+def get_partitions_bc(c_nx_g):
+    ig_g = nx_to_ig(c_nx_g)
+    dendrogram = ig_g.community_edge_betweenness()
+    clusters = dendrogram.as_clustering()
+    membership = clusters.membership
+    a = list()
+    for name, membership in zip(ig_g.vs["label"], membership):
+        a.append([name, membership])
+    return a
+
+
+def clean_graph(nx_g_c, user_c):
+    nx_g_c.remove_node(user_c)
+    deleted = list(nx.isolates(nx_g_c))
+    deleted.append(user_c)
+    nx_g_c.remove_nodes_from(list(nx.isolates(nx_g_c)))
+    return nx_g_c, deleted
+
+
+g3 = nx.read_gml("cache/graphs/525008285.gml")
+cleaned, deleted = clean_graph(g3, "525008285")
+print(get_partitions_bc(cleaned))
