@@ -68,6 +68,15 @@ def get_friends(session=None, target=None):
         return friends
 
 
+def get_names(session, targets):
+    resp = session.users.get(user_ids=",".join(targets))
+    result = {}
+    for data in resp:
+        name = data["first_name"] + " " + data["last_name"]
+        result.update({str(data['id']): name})
+    return result
+
+
 def get_groups(session=None, target=None):
     pass
 

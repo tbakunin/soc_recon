@@ -41,7 +41,7 @@ def nx_to_ig(g):
     return g1
 
 
-def get_communities(nx_g, user, algo="auto"):
+def get_communities(nx_g, user, algo="auto", session=None):
     def use_bc(nx_g_h):
         if len(nx_g_h.nodes) < VERTICES_THRESHOLD and len(nx_g_h.edges) < EDGES_THRESHOLD:
             return True
@@ -75,13 +75,20 @@ def get_communities(nx_g, user, algo="auto"):
         return a
 
     # testing func
-    def label_graph(nx_graph, comm_list):
+    def write_labeled_graph(nx_graph, comm_list, i_session):
         id_comm_dict = dict()
         for pair in comm_list:
             dict_up = {pair[0]: pair[1]}
             id_comm_dict.update(dict_up)
-        nx.set_node_attributes(nx_graph, id_comm_dict,  "comm")
-        return nx_graph
+
+        id_name_dict = _vk.get_names(i_session, list(nx_graph))
+        print(id_name_dict)
+        print(id_comm_dict)
+        nx.set_node_attributes(nx_graph, id_comm_dict,  "community")
+        nx.set_node_attributes(nx_graph, id_name_dict, "name")
+
+        nx.write_gexf(nx_graph, "labeled.gexf")
+        return 0
 
     clean_nx_g, deleted_nodes = clean_graph(nx_g, str(user))
     if algo == "auto":
@@ -92,8 +99,6 @@ def get_communities(nx_g, user, algo="auto"):
             raise Exception("[-] No such algo!")
 
     id_comm_list = get_partitions_bc(clean_nx_g) if algo_des else get_partitions_ml(clean_nx_g)
-    # l_graph = label_graph(nx_g, id_comm_list) # do not need this for prod
-
     return id_comm_list
 
 
