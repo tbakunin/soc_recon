@@ -124,28 +124,57 @@ def find_similar(list_of_ids, session):
 
         for user in i_data:
             obj = {}
+            # empty fields interfere
+            for key in fields_to_copy:
+                try:
+                    if isinstance(key, list):
+                        if not user[key[0]]:
+                            del user[key[0]]
+                    else:
+                        if not user[key]:
+                            del user[key]
+                except KeyError:
+                    continue
+
             # adding all info in dict, unifying info, appending resulting dict to user_list
             for key in fields_to_copy:
-                if isinstance(key, dict):
-                    try:
-                        user[key[0]]
-                    except KeyError:
-                        for field in key[1]:
-                            obj.update({key[0] + field: None})
-                        continue
-                    for field in key[1]:
+                if isinstance(key, list):
+                    if key[0] in ("schools", "universities", "career", "military"):
                         try:
-                            obj.update({key[0] + field: user[key[0]][field]})
+                            user[key[0]]
                         except KeyError:
-                            obj.update({key[0] + field: None})
+                            for field in key[1]:
+                                obj.update({"_".join((key[0], field)): [None]})
+                        else:
+                            for field in key[1]:
+                                obj.update({"_".join((key[0], field)): []})
+                            for frame in user[key[0]]:
+                                for field in key[1]:
+                                    try:
+                                        obj["_".join((key[0], field))].append(frame[field])
+                                    except KeyError:
+                                        obj["_".join((key[0], field))].append(None)
+                    else:
+                        try:
+                            user[key[0]]
+                        except KeyError:
+                            for field in key[1]:
+                                obj.update({"_".join((key[0], field)): None})
+                        else:
+                            for field in key[1]:
+                                try:
+                                    obj.update({"_".join((key[0], field)): user[key[0]][field]})
+                                except KeyError:
+                                    obj.update({"_".join((key[0], field)): None})
                 else:
                     try:
                         obj.update({key: user[key]})
                     except KeyError:
                         obj.update({key: None})
 
-                user_list.append(obj)
-                return user_list
+            user_list.append(obj)
+
+        return user_list
 
     ids = []
     for i in range(len(list_of_ids)):
@@ -156,4 +185,4 @@ def find_similar(list_of_ids, session):
     for i in range(len(objs)):
         print(objs[i])
 
-    return 0
+    return objs
