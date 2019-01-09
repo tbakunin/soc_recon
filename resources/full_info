@@ -1,2 +1,3 @@
-bdate, city, country, home_town, universities, schools, occupation, relation, personal, career, military
+bdate, city, country, home_town, universities, schools, personal, career, military
 # from personal - langs, political and religion
+# age, city, country, home_town, uni, school, politics, langs, religion, workplace, military

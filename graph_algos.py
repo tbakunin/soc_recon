@@ -6,11 +6,12 @@ import os
 
 VERTICES_THRESHOLD = 600
 EDGES_THRESHOLD = 3000
+SIMILARITY_THRESHOLD = 0.3
+
 
 # TODO: develop var and func naming conventions, refactor
+# TODO: logging
 
-
-# Done
 def create_ego_graph(vk_id, session):
     if cache.contains_graph(vk_id):
         return cache.get_graph(vk_id)
@@ -84,7 +85,7 @@ def get_communities(nx_g, user, algo="auto", session=None):
         id_name_dict = _vk.get_names(i_session, list(nx_graph))
         print(id_name_dict)
         print(id_comm_dict)
-        nx.set_node_attributes(nx_graph, id_comm_dict,  "community")
+        nx.set_node_attributes(nx_graph, id_comm_dict, "community")
         nx.set_node_attributes(nx_graph, id_name_dict, "name")
 
         nx.write_gexf(nx_graph, "labeled.gexf")
@@ -103,13 +104,56 @@ def get_communities(nx_g, user, algo="auto", session=None):
 
 
 # function for detecting similarities in communities
-
 # TODO: create it
 def find_similar(list_of_ids, session):
+    comm_index = list_of_ids[0][1]
+
+    # if dates are controversial then omit all provided info
+    def is_controversial(obj):
+        return True
+
+    # create objs with data to work with
+    def create_data_objs(i_data):
+        user_list = []
+        fields_to_copy = ["bdate", ["city", ["id"]], ["country", ["id"]],
+                          "home_town", ["universities", ["country", "city",
+                                                         "id", "faculty", "chair", "graduation"]],
+                          ["schools", ["id", "country", "city"]], ["personal", ["langs", "political", "religion"]],
+                          ["career", ["city_id", "company", "group_id", "country_id"]],
+                          ["military", ["unit_id", "country_id", "from", "until"]]]
+
+        for user in i_data:
+            obj = {}
+            # adding all info in dict, unifying info, appending resulting dict to user_list
+            for key in fields_to_copy:
+                if isinstance(key, dict):
+                    try:
+                        user[key[0]]
+                    except KeyError:
+                        for field in key[1]:
+                            obj.update({key[0] + field: None})
+                        continue
+                    for field in key[1]:
+                        try:
+                            obj.update({key[0] + field: user[key[0]][field]})
+                        except KeyError:
+                            obj.update({key[0] + field: None})
+                else:
+                    try:
+                        obj.update({key: user[key]})
+                    except KeyError:
+                        obj.update({key: None})
+
+                user_list.append(obj)
+                return user_list
+
     ids = []
     for i in range(len(list_of_ids)):
         ids.append(list_of_ids[i][0])
 
     data = _vk.get_all_info(session=session, targets=",".join(ids))
-    print(data)
+    objs = create_data_objs(data)
+    for i in range(len(objs)):
+        print(objs[i])
 
+    return 0

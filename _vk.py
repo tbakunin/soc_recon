@@ -49,7 +49,8 @@ def auth(check_saved=1):
 def get_all_info(session=None, targets=None):
     # do not need to check whether data is given since all checks are done before
     os.chdir("resources")
-    scope = open("full_info", "r").read()
+    with open("full_info", "r") as f:
+        scope = f.readlines()[0]
     os.chdir("..")
     return session.users.get(user_ids=targets, fields=scope)
 
