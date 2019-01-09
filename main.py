@@ -1,17 +1,18 @@
-from _vk import auth
-import graph_algos
-import cache
 import argparse
-import sys
 import os
-from report import gen_report
+import sys
+
+import cache
+import graph_algos
+import stats
+from _vk import auth
 
 """
 [?] - input from user needed
 [!] - error occured
 [+] - everything goes according to plan
 [*] - debugging messages
-[.] - informing user
+[i] - informing user
 """
 
 
@@ -56,8 +57,12 @@ def main():
     target = int(input("[?] Enter target's ID or handle: "))
     g = graph_algos.create_ego_graph(target, session)
     comm_list = graph_algos.get_communities(g, target, session=session)
-    sims = graph_algos.find_similar(comm_list, session)
-    gen_report(sims)
+    comm_dict = graph_algos.separate_communities(comm_list)
+    geo_sims = []
+    for comm in comm_dict.keys():
+        geo_sims.append(stats.find_similar(comm_dict[comm], session))
+    normalized = stats.normalize_geo(geo_sims)
+    print(normalized)
     return 0
 
 

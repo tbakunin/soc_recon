@@ -1,8 +1,10 @@
+import os
+
+import igraph  # cannot install this one on Win
 import networkx as nx
+
 import _vk
 import cache
-import igraph  # cannot install this one on Win
-import os
 
 VERTICES_THRESHOLD = 600
 EDGES_THRESHOLD = 3000
@@ -40,6 +42,17 @@ def nx_to_ig(g):
     g1 = igraph.read("temp.pajek", format="pajek")
     os.remove("temp.pajek")
     return g1
+
+
+def separate_communities(id_comm_list):
+    comms = list(set([x[1] for x in id_comm_list]))
+    comm_dict = {}
+    for comm_label in comms:
+        comm_dict.update({comm_label: []})
+    for id_i in id_comm_list:
+        comm_dict[id_i[1]].append(id_i[0])
+
+    return comm_dict
 
 
 def get_communities(nx_g, user, algo="auto", session=None):
@@ -83,11 +96,8 @@ def get_communities(nx_g, user, algo="auto", session=None):
             id_comm_dict.update(dict_up)
 
         id_name_dict = _vk.get_names(i_session, list(nx_graph))
-        print(id_name_dict)
-        print(id_comm_dict)
         nx.set_node_attributes(nx_graph, id_comm_dict, "community")
         nx.set_node_attributes(nx_graph, id_name_dict, "name")
-
         nx.write_gexf(nx_graph, "labeled.gexf")
         return 0
 
@@ -100,89 +110,6 @@ def get_communities(nx_g, user, algo="auto", session=None):
             raise Exception("[-] No such algo!")
 
     id_comm_list = get_partitions_bc(clean_nx_g) if algo_des else get_partitions_ml(clean_nx_g)
+    write_labeled_graph(clean_nx_g, id_comm_list, session)
     return id_comm_list
 
-
-# function for detecting similarities in communities
-# TODO: create it
-def find_similar(list_of_ids, session):
-    comm_index = list_of_ids[0][1]
-
-    # if dates are controversial then omit all provided info
-    def is_controversial(obj):
-        return True
-
-    # create objs with data to work with
-    def create_data_objs(i_data):
-        user_list = []
-        fields_to_copy = ["bdate", ["city", ["id"]], ["country", ["id"]],
-                          "home_town", ["universities", ["country", "city",
-                                                         "id", "faculty", "chair", "graduation"]],
-                          ["schools", ["id", "country", "city"]], ["personal", ["langs", "political", "religion"]],
-                          ["career", ["city_id", "company", "group_id", "country_id"]],
-                          ["military", ["unit_id", "country_id", "from", "until"]]]
-
-        for user in i_data:
-            obj = {}
-            # empty fields interfere
-            for key in fields_to_copy:
-                try:
-                    if isinstance(key, list):
-                        if not user[key[0]]:
-                            del user[key[0]]
-                    else:
-                        if not user[key]:
-                            del user[key]
-                except KeyError:
-                    continue
-
-            # adding all info in dict, unifying info, appending resulting dict to user_list
-            for key in fields_to_copy:
-                if isinstance(key, list):
-                    if key[0] in ("schools", "universities", "career", "military"):
-                        try:
-                            user[key[0]]
-                        except KeyError:
-                            for field in key[1]:
-                                obj.update({"_".join((key[0], field)): [None]})
-                        else:
-                            for field in key[1]:
-                                obj.update({"_".join((key[0], field)): []})
-                            for frame in user[key[0]]:
-                                for field in key[1]:
-                                    try:
-                                        obj["_".join((key[0], field))].append(frame[field])
-                                    except KeyError:
-                                        obj["_".join((key[0], field))].append(None)
-                    else:
-                        try:
-                            user[key[0]]
-                        except KeyError:
-                            for field in key[1]:
-                                obj.update({"_".join((key[0], field)): None})
-                        else:
-                            for field in key[1]:
-                                try:
-                                    obj.update({"_".join((key[0], field)): user[key[0]][field]})
-                                except KeyError:
-                                    obj.update({"_".join((key[0], field)): None})
-                else:
-                    try:
-                        obj.update({key: user[key]})
-                    except KeyError:
-                        obj.update({key: None})
-
-            user_list.append(obj)
-
-        return user_list
-
-    ids = []
-    for i in range(len(list_of_ids)):
-        ids.append(list_of_ids[i][0])
-
-    data = _vk.get_all_info(session=session, targets=",".join(ids))
-    objs = create_data_objs(data)
-    for i in range(len(objs)):
-        print(objs[i])
-
-    return objs

@@ -1,3 +1,42 @@
 bdate, city, country, home_town, universities, schools, personal, career, military
 # from personal - langs, political and religion
 # age, city, country, home_town, uni, school, politics, langs, religion, workplace, military
+bdate # try to get approximate age
+city_id # try to get city
+city_title # together with home_town
+country_id # merge with city_id
+home_town # together with city_title, strip "г."
+universities_country # together with country_title
+universities_city # together with city_id
+universities_id
+universities_faculty
+universities_chair
+universities_graduation # in validation
+schools_id # together with city_id
+schools_city
+schools_country # together with country_id
+personal_langs
+personal_political
+personal_religion
+career_city_id # together with city_id
+career_company
+career_group_id
+career_country_id # together with country_id
+military_unit_id # merge with country id
+military_country_id # together with country_id
+military_from # for validation and age approximation
+military_until # for validation and age approximation
+
+=> corralating this factors:
+1) age - mode and approximation using mean if standard deviation is less than const
+2) city name | _ merge
+3) city id   | - merge
+4) country id
+5) school id
+6) career group
+7) military unit
+8) langs
+9) politics
+10) religion
+11) uni, faculty, chair
+12) data validation using dates
