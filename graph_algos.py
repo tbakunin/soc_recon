@@ -8,11 +8,7 @@ import cache
 
 VERTICES_THRESHOLD = 600
 EDGES_THRESHOLD = 3000
-SIMILARITY_THRESHOLD = 0.3
 
-
-# TODO: develop var and func naming conventions, refactor
-# TODO: logging
 
 def create_ego_graph(vk_id, session):
     if cache.contains_graph(vk_id):
@@ -36,7 +32,6 @@ def create_ego_graph(vk_id, session):
     return nx_g
 
 
-# TODO: adequate conversion from networkx graph to igraph, current version is nasty
 def nx_to_ig(g):
     nx.write_pajek(g, "temp.pajek")
     g1 = igraph.read("temp.pajek", format="pajek")

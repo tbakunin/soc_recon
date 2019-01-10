@@ -8,4 +8,4 @@ data/
 vk_config.v2.json
 soc_recon_2/
 *.log
-soc_recon2/
+reports/

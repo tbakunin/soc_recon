@@ -1,4 +1,6 @@
+import sys
 from collections import Counter
+
 import _vk
 
 
@@ -20,7 +22,6 @@ def normalize_data(list_list):
 
 
 def calc_prob(sims):
-    print(sims)
     overall = sum(x[1] for x in sims)
     cardinality = {}
     for d in sims:
@@ -52,8 +53,9 @@ def find_similar(ids, session, datatype):
             temp_counter = Counter(wo_none)
             try:
                 k = nones / sum(temp_counter.values())
-            except ZeroDivisionError:
-                print(1)
+            except ZeroDivisionError as e:
+                print("[!] What!" + str(e))
+                sys.exit()
             for name in temp_counter:
                 counter.update({name: (k * temp_counter[name] + temp_counter[name]) / len(list_of_names)})
             return counter
@@ -79,6 +81,8 @@ def find_similar(ids, session, datatype):
                 counter = count_with_nones(entities, counter)
 
         most_common = counter.most_common()[0][0]
+        most_common = most_common if (most_common is not None or len(counter.most_common()) == 1) \
+            else counter.most_common()[1][0]
         # result = [most_common[0], most_common[1] / sum(counter.values()), len(objects)]
         return most_common, len(objects)
 

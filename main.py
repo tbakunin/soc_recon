@@ -4,6 +4,7 @@ import sys
 
 import cache
 import graph_algos
+import report
 import stats
 from _vk import auth
 
@@ -64,7 +65,7 @@ def main():
             sims[t].append((stats.find_similar(comm_dict[comm], session, t)))
         sims[t] = stats.calc_prob(sims[t])
 
-    print(sims)
+    report.gen_report(str(target), sims)
     return 0
 
 
