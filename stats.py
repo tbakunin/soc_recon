@@ -3,20 +3,36 @@ import _vk
 
 
 # data in a form of [(id, prob, card), ...]
-def normalize_data(tuple_list):
-    overall = sum([x[2] for x in tuple_list])
-    for i in range(len(tuple_list)):
-        tuple_list[i][1] = tuple_list[i][1] * (tuple_list[i][2]/overall)
-        tuple_list[i][1] = tuple_list[i][1] * (tuple_list[i][2] / overall)
+def normalize_data(list_list):
+    overall = sum([x[2] for x in list_list])
+    for i in range(len(list_list)):
+        list_list[i][1] = list_list[i][1] * (list_list[i][2]/overall)
+        list_list[i][1] = list_list[i][1] * (list_list[i][2] / overall)
 
     probabilities = {}
-    for d in tuple_list:
+    for d in list_list:
         if d[0] not in probabilities.keys():
             probabilities[d[0]] = d[1]
         else:
             probabilities[d[0]] += d[1]
 
     return probabilities
+
+
+def calc_prob(sims):
+    print(sims)
+    overall = sum(x[1] for x in sims)
+    cardinality = {}
+    for d in sims:
+        if d[0] not in cardinality.keys():
+            cardinality[d[0]] = d[1]
+        else:
+            cardinality[d[0]] += d[1]
+
+    for key in cardinality.keys():
+        cardinality[key] = cardinality[key] / overall
+
+    return list(cardinality.items())
 
 
 def find_similar(ids, session, datatype):
@@ -44,11 +60,11 @@ def find_similar(ids, session, datatype):
 
         if dtype == "city":
             fields = ["city_id", "schools_city", "universities_city", "career_city_id"]
-        if dtype == "country":
-            fields = ["country_id", "schools_country", "university_country", "career_country_id"]
-        if dtype == "school":
+        elif dtype == "country":
+            fields = ["country_id", "schools_country", "universities_country", "career_country_id"]
+        elif dtype == "school":
             fields = ["schools_id"]
-        if dtype == "university":
+        elif dtype == "university":
             fields = ["universities_id"]
         else:
             raise Exception("Wrong data type")
@@ -56,14 +72,15 @@ def find_similar(ids, session, datatype):
         counter = Counter()
         for obj in objects:
             entities = [obj[x] for x in fields]
+            entities = [x[0] if isinstance(x, list) else x for x in entities]
             if entities.count(None) == len(entities):
                 counter.update({None: 1})
             else:
                 counter = count_with_nones(entities, counter)
 
-        most_common = counter.most_common()[0]
-        result = (most_common[0], most_common[1] / sum(counter.values()), len(objects))
-        return result
+        most_common = counter.most_common()[0][0]
+        # result = [most_common[0], most_common[1] / sum(counter.values()), len(objects)]
+        return most_common, len(objects)
 
     fields_to_copy = ["bdate", ["city", ["id", "title"]], ["country", ["id"]],
                       "home_town", ["universities", ["country", "city",
@@ -138,4 +155,4 @@ def find_similar(ids, session, datatype):
     for key_o in fields_to_copy:
         c.update({key_o[0]: 1})
 
-    return get_geo(objs)
+    return get_data(objs, datatype)

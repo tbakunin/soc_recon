@@ -63,7 +63,10 @@ def get_communities(nx_g, user, algo="auto", session=None):
             return False
 
     def clean_graph(nx_g_c, user_c):
-        nx_g_c.remove_node(user_c)
+        try:
+            nx_g_c.remove_node(user_c)
+        except nx.exception.NetworkXError:
+            nx_g_c.remove_node(int(user_c))
         deleted = list(nx.isolates(nx_g_c))
         nx_g_c.remove_nodes_from(list(nx.isolates(nx_g_c)))
         cleaned = nx_g_c
@@ -110,6 +113,6 @@ def get_communities(nx_g, user, algo="auto", session=None):
             raise Exception("[-] No such algo!")
 
     id_comm_list = get_partitions_bc(clean_nx_g) if algo_des else get_partitions_ml(clean_nx_g)
-    write_labeled_graph(clean_nx_g, id_comm_list, session)
+    # write_labeled_graph(clean_nx_g, id_comm_list, session)
     return id_comm_list
 

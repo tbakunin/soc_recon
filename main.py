@@ -61,8 +61,8 @@ def main():
     sims = {"city": [], "country": [], "school": [], "university": []}
     for t in sims.keys():
         for comm in comm_dict.keys():
-            sims[t].append(stats.find_similar(comm_dict[comm], session))
-        sims[t] = stats.normalize_data(sims[t])
+            sims[t].append((stats.find_similar(comm_dict[comm], session, t)))
+        sims[t] = stats.calc_prob(sims[t])
 
     print(sims)
     return 0
