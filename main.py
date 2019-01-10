@@ -58,11 +58,13 @@ def main():
     g = graph_algos.create_ego_graph(target, session)
     comm_list = graph_algos.get_communities(g, target, session=session)
     comm_dict = graph_algos.separate_communities(comm_list)
-    geo_sims = []
-    for comm in comm_dict.keys():
-        geo_sims.append(stats.find_similar(comm_dict[comm], session))
-    normalized = stats.normalize_geo(geo_sims)
-    print(normalized)
+    sims = {"city": [], "country": [], "school": [], "university": []}
+    for t in sims.keys():
+        for comm in comm_dict.keys():
+            sims[t].append(stats.find_similar(comm_dict[comm], session))
+        sims[t] = stats.normalize_data(sims[t])
+
+    print(sims)
     return 0
 
 

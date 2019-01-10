@@ -1,30 +1,25 @@
 from collections import Counter
-
 import _vk
 
 
-def normalize_geo(dict_list):
-    overall = sum([x['mp_city'][2] for x in dict_list])
-    for i in range(len(dict_list)):
-        dict_list[i]['mp_city'][1] = dict_list[i]['mp_city'][1] * (dict_list[i]['mp_city'][2]/overall)
-        dict_list[i]['mp_country'][1] = dict_list[i]['mp_country'][1] * (dict_list[i]['mp_country'][2] / overall)
+# data in a form of [(id, prob, card), ...]
+def normalize_data(tuple_list):
+    overall = sum([x[2] for x in tuple_list])
+    for i in range(len(tuple_list)):
+        tuple_list[i][1] = tuple_list[i][1] * (tuple_list[i][2]/overall)
+        tuple_list[i][1] = tuple_list[i][1] * (tuple_list[i][2] / overall)
 
-    probabilities_city = {}
-    probabilities_country = {}
-    for d in dict_list:
-        if d['mp_city'][0] not in probabilities_city.keys():
-            probabilities_city[d['mp_city'][0]] = d['mp_city'][1]
+    probabilities = {}
+    for d in tuple_list:
+        if d[0] not in probabilities.keys():
+            probabilities[d[0]] = d[1]
         else:
-            probabilities_city[d['mp_city'][0]] += d['mp_city'][1]
-        if d['mp_country'][0] not in probabilities_country.keys():
-            probabilities_country[d['mp_country'][0]] = d['mp_country'][1]
-        else:
-            probabilities_country[d['mp_country'][0]] += d['mp_country'][1]
+            probabilities[d[0]] += d[1]
 
-    return probabilities_city, probabilities_country
+    return probabilities
 
 
-def find_similar(ids, session):
+def find_similar(ids, session, datatype):
 
     # if dates are controversial then omit all provided info
     # not necessary for now
@@ -34,7 +29,7 @@ def find_similar(ids, session):
     def get_age(objects):
         return 0
 
-    def get_geo(objects):
+    def get_data(objects, dtype):
         def count_with_nones(list_of_names, counter):
             nones = list_of_names.count(None)
             wo_none = [x for x in list_of_names if x is not None]
@@ -45,58 +40,30 @@ def find_similar(ids, session):
                 print(1)
             for name in temp_counter:
                 counter.update({name: (k * temp_counter[name] + temp_counter[name]) / len(list_of_names)})
-
             return counter
-        # sort ids out first
-        city_counter = Counter()
-        country_counter = Counter()
+
+        if dtype == "city":
+            fields = ["city_id", "schools_city", "universities_city", "career_city_id"]
+        if dtype == "country":
+            fields = ["country_id", "schools_country", "university_country", "career_country_id"]
+        if dtype == "school":
+            fields = ["schools_id"]
+        if dtype == "university":
+            fields = ["universities_id"]
+        else:
+            raise Exception("Wrong data type")
+
+        counter = Counter()
         for obj in objects:
-            cities = [obj["city_id"]] + obj["schools_city"] + obj["universities_city"] + obj["career_city_id"] \
-                     + obj["schools_city"]
-            if cities.count(None) == len(cities):
-                city_counter.update({None: 1})
+            entities = [obj[x] for x in fields]
+            if entities.count(None) == len(entities):
+                counter.update({None: 1})
             else:
-                city_counter = count_with_nones(cities, city_counter)
+                counter = count_with_nones(entities, counter)
 
-            countries = [obj["country_id"]] + obj["schools_country"] + obj["universities_country"] \
-                        + obj["career_country_id"] + obj["schools_country"]
-            if countries.count(None) == len(countries):
-                country_counter.update({None: 1})
-            else:
-                country_counter = count_with_nones(countries, country_counter)
-
-        most_common_city = city_counter.most_common()[0]
-        most_common_country = country_counter.most_common()[0]
-
-        result = {"mp_city": [most_common_city[0], most_common_city[1] / sum(city_counter.values()), len(objects)],
-                  "mp_country": [most_common_country[0], most_common_country[1] / sum(country_counter.values()), len(objects)]}
+        most_common = counter.most_common()[0]
+        result = (most_common[0], most_common[1] / sum(counter.values()), len(objects))
         return result
-
-    def get_schools(objects):
-        return 0
-
-    def get_uni(objects):
-        return 0
-    def get_career(objects):
-        return 0
-
-    def get_langs(objects):
-        return 0
-
-    def get_politics(objects):
-        return 0
-
-    def get_religion(objects):
-        return 0
-
-    def get_all_data(objects):
-        potential_age = get_age(objects)
-        potential_geo = get_geo(objects)
-        potential_school = get_schools(objects)
-        potential_uni = get_uni(objects)
-        potential_langs = get_langs(objects)
-        potential_politics = get_politics(objects)
-        potential_religion = get_religion(objects)
 
     fields_to_copy = ["bdate", ["city", ["id", "title"]], ["country", ["id"]],
                       "home_town", ["universities", ["country", "city",
