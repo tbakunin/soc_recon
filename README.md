@@ -11,7 +11,7 @@ The whole project is written in Python 3 which makes installation pretty straigh
 ### Install dependencies
 ```
 pacman -S igraph
-pip3 install networkx, vk_api, matplotlib, python-igraph
+pip3 install networkx, vk_api, matplotlib, python-igraph, fpdf
 ```
 
 ### Download and run
